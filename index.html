@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Колесо Фортуны</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #1e1e2e 0%, #2a2a3e 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .container {
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin-bottom: 5px;
+            color: #d4af77;
+            text-shadow: 0 2px 20px rgba(212, 175, 119, 0.3);
+            font-weight: 600;
+            letter-spacing: 1px;
+        }
+
+        .subtitle {
+            font-size: 0.95em;
+            color: #a8a8b8;
+            margin-bottom: 40px;
+            font-weight: 300;
+            letter-spacing: 0.5px;
+        }
+
+        .wheel-container {
+            position: relative;
+            width: 320px;
+            height: 320px;
+            margin: 0 auto;
+        }
+
+        #wheel {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 6px solid rgba(212, 175, 119, 0.3);
+            position: relative;
+            overflow: hidden;
+            transition: transform 5s cubic-bezier(0.25, 0.1, 0.25, 1);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(212, 175, 119, 0.1);
+        }
+
+        .pointer {
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 18px solid transparent;
+            border-right: 18px solid transparent;
+            border-top: 28px solid #d4af77;
+            z-index: 10;
+            filter: drop-shadow(0px 3px 6px rgba(0,0,0,0.5));
+        }
+
+        .spin-button {
+            margin-top: 40px;
+            padding: 16px 50px;
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #2a2a3e;
+            background: linear-gradient(135deg, #d4af77 0%, #c49c63 100%);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 25px rgba(212, 175, 119, 0.3);
+            letter-spacing: 0.5px;
+        }
+
+        .spin-button:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(212, 175, 119, 0.4);
+        }
+
+        .spin-button:disabled {
+            background: linear-gradient(135deg, #4a4a5a 0%, #3a3a4a 100%);
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+        
+        .spin-button:active:not(:disabled) {
+            transform: translateY(0);
+        }
+
+        .result {
+            margin-top: 25px;
+            font-size: 1.4em;
+            font-weight: 500;
+            min-height: 30px;
+            color: #d4af77;
+            letter-spacing: 0.5px;
+        }
+        
+        .stats {
+            margin-top: 40px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            width: 100%;
+        }
+        .stat-item {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            padding: 12px 15px;
+            border-radius: 12px;
+            border-left: 3px solid;
+            flex-grow: 1;
+            min-width: 120px;
+            font-size: 0.9em;
+            transition: transform 0.2s ease;
+        }
+        
+        .stat-item:hover {
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.08);
+        }
+        
+        .stat-item strong {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+    </style>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <div class="container">
+        <h1>🎡 Колесо Фортуны</h1>
+        <p class="subtitle">Еженедельный розыгрыш</p>
+        
+        <div class="wheel-container">
+            <div class="pointer"></div>
+            <svg id="wheel" viewBox="0 0 200 200" style="width: 100%; height: 100%; border-radius: 50%; border: 6px solid rgba(212, 175, 119, 0.3); box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(212, 175, 119, 0.1); transition: transform 5s cubic-bezier(0.25, 0.1, 0.25, 1);">
+                <!-- Секторы будут добавлены через JS -->
+            </svg>
+        </div>
+
+        <button id="spin-btn" class="spin-button">Крутить колесо!</button>
+        
+        <div id="result" class="result"></div>
+
+        <div class="stats">
+            <div class="stat-item" style="border-color: #5A8F7B;">
+                <strong>💰 Денежные призы</strong>27%
+            </div>
+            <div class="stat-item" style="border-color: #B8935C;">
+                <strong>✅ Доступы</strong>3%
+            </div>
+            <div class="stat-item" style="border-color: #5B7C9D;">
+                <strong>🏆 Статусы</strong>10%
+            </div>
+            <div class="stat-item" style="border-color: #7B5B8F;">
+                <strong>☠️ NFT подарки</strong>10%
+            </div>
+            <div class="stat-item" style="border-color: #6B5B5B;">
+                <strong>💀 Ничего</strong>50%
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const prizes = [
+            { name: "💀 Ничего", emoji: "💀", chance: 50, color: "#6B5B5B" },
+            { name: "💰 Денежные призы", emoji: "💰", chance: 27, color: "#5A8F7B" },
+            { name: "🏆 Особые статусы", emoji: "🏆", chance: 10, color: "#5B7C9D" },
+            { name: "☠️ NFT подарки", emoji: "☠️", chance: 10, color: "#7B5B8F" },
+            { name: "✅ Эксклюзивные доступы", emoji: "✅", chance: 3, color: "#B8935C" }
+        ];
+
+        const wheel = document.getElementById('wheel');
+        const spinBtn = document.getElementById('spin-btn');
+        const resultDiv = document.getElementById('result');
+
+        let currentRotation = 0;
+
+        // Функция для создания сектора колеса с эмодзи
+        function createWheelSector(startAngle, endAngle, color, emoji) {
+            const centerX = 100;
+            const centerY = 100;
+            const radius = 100;
+            
+            // Конвертируем углы в радианы
+            const startRad = (startAngle - 90) * Math.PI / 180;
+            const endRad = (endAngle - 90) * Math.PI / 180;
+            
+            // Вычисляем координаты для arc
+            const x1 = centerX + radius * Math.cos(startRad);
+            const y1 = centerY + radius * Math.sin(startRad);
+            const x2 = centerX + radius * Math.cos(endRad);
+            const y2 = centerY + radius * Math.sin(endRad);
+            
+            // Определяем, большая ли дуга
+            const largeArc = (endAngle - startAngle) > 180 ? 1 : 0;
+            
+            // Создаем path для сектора
+            const pathData = `M ${centerX} ${centerY} L ${x1} ${y1} A ${radius} ${radius} 0 ${largeArc} 1 ${x2} ${y2} Z`;
+            
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            path.setAttribute("d", pathData);
+            path.setAttribute("fill", color);
+            path.setAttribute("stroke", "rgba(255, 255, 255, 0.15)");
+            path.setAttribute("stroke-width", "0.5");
+            
+            // Добавляем эмодзи
+            const middleAngle = (startAngle + endAngle) / 2;
+            const textRadius = radius * 0.65;
+            const textAngle = (middleAngle - 90) * Math.PI / 180;
+            const textX = centerX + textRadius * Math.cos(textAngle);
+            const textY = centerY + textRadius * Math.sin(textAngle);
+            
+            const textElement = document.createElementNS("http://www.w3.org/2000/svg", "text");
+            textElement.setAttribute("x", textX);
+            textElement.setAttribute("y", textY);
+            textElement.setAttribute("font-size", "20");
+            textElement.setAttribute("text-anchor", "middle");
+            textElement.setAttribute("dominant-baseline", "middle");
+            textElement.textContent = emoji;
+            
+            return { path, text: textElement };
+        }
+
+        // Функция для создания колеса
+        function createWheel() {
+            let startAngle = 0;
+            
+            prizes.forEach(prize => {
+                const angleSize = (prize.chance / 100) * 360;
+                const endAngle = startAngle + angleSize;
+                
+                const { path, text } = createWheelSector(startAngle, endAngle, prize.color, prize.emoji);
+                wheel.appendChild(path);
+                wheel.appendChild(text);
+                
+                startAngle = endAngle;
+            });
+        }
+
+        // Функция для определения приза на основе шансов
+        function getPrize() {
+            const random = Math.random() * 100;
+            let cumulative = 0;
+            
+            for (let i = 0; i < prizes.length; i++) {
+                cumulative += prizes[i].chance;
+                if (random < cumulative) {
+                    return i;
+                }
+            }
+            return 0;
+        }
+
+        // Функция вращения колеса
+        function spinWheel() {
+            spinBtn.disabled = true;
+            resultDiv.textContent = 'Крутим...';
+            
+            const prizeIndex = getPrize();
+            const prize = prizes[prizeIndex];
+
+            // Вычисляем угол для выбранного приза
+            let prizeStartAngle = 0;
+            for (let i = 0; i < prizeIndex; i++) {
+                prizeStartAngle += (prizes[i].chance / 100) * 360;
+            }
+            
+            const prizeAngleSize = (prize.chance / 100) * 360;
+            const prizeMiddleAngle = prizeStartAngle + prizeAngleSize / 2;
+            
+            // Случайное смещение внутри сектора приза
+            const randomOffset = (Math.random() - 0.5) * prizeAngleSize * 0.8;
+            const targetAngle = prizeMiddleAngle + randomOffset;
+            
+            // Добавляем несколько полных оборотов
+            const spins = 5 + Math.floor(Math.random() * 3);
+            const totalRotation = spins * 360 + (360 - targetAngle);
+            
+            currentRotation += totalRotation;
+            wheel.style.transform = `rotate(${currentRotation}deg)`;
+            
+            setTimeout(() => {
+                resultDiv.textContent = `Выигрыш: ${prize.name}`;
+                spinBtn.disabled = false;
+            }, 5000);
+        }
+
+        spinBtn.addEventListener('click', spinWheel);
+        
+        // Инициализация
+        createWheel();
+
+        // Инициализация Telegram WebApp
+        try {
+            let tg = window.Telegram.WebApp;
+            tg.expand();
+            tg.ready();
+        } catch (error) {
+            console.error("Telegram WebApp SDK не найдено. Приложение открыто не в Telegram.");
+        }
+    </script>
+</body>
+</html>
